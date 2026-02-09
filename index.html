@@ -663,6 +663,7 @@
                     <button class="btn" onclick="downloadAllResults()">📥 Descargar Excel</button>
                     <button class="btn" onclick="generatePDFReport()">📄 Generar PDF</button>
                     <button class="btn btn-secondary" onclick="sendToGoogleSheets()">📊 Enviar a Google Sheets</button>
+                    <button class="btn" onclick="clearAllData()" style="background: #dc3545;">🗑️ Borrar Todos los Datos</button>
                 </div>
 
                 <div class="stats-grid">
@@ -1732,7 +1733,7 @@
         }
 
         async function sendToGoogleSheets() {
-            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === "https://script.google.com/macros/s/AKfycbzUrwpqIINSpADqwihgG9u1NDj4zLc5oTuaTlEu8J5IM49P3lZF0AuQP5QOT3DrgudnkQ/exec") {
+            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === "TU_URL_DE_GOOGLE_SHEETS_AQUI") {
                 alert('⚠️ Primero debes configurar la URL de Google Sheets.\n\nPasos:\n1. Crea un Google Sheet\n2. Usa Google Apps Script\n3. Configura la URL en el código\n\nConsulta las instrucciones completas.');
                 return;
             }
@@ -1753,6 +1754,42 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('❌ Error al enviar datos. Verifica la configuración.');
+            }
+        }
+
+        function clearAllData() {
+            const confirmDelete = confirm(
+                '⚠️ ADVERTENCIA ⚠️\n\n' +
+                '¿Estás seguro de que quieres BORRAR TODOS los datos?\n\n' +
+                '✅ Esto borrará:\n' +
+                '- Todos los registros locales del navegador\n' +
+                '- Las estadísticas actuales\n' +
+                '- Los gráficos\n\n' +
+                '❌ NO borrará:\n' +
+                '- Datos en Google Sheets (esos quedan guardados)\n\n' +
+                'Esta acción NO se puede deshacer.'
+            );
+
+            if (!confirmDelete) return;
+
+            const doubleConfirm = confirm(
+                '🔴 ÚLTIMA CONFIRMACIÓN 🔴\n\n' +
+                '¿Realmente quieres borrar TODOS los datos locales?\n\n' +
+                'Haz clic en OK para confirmar.'
+            );
+
+            if (doubleConfirm) {
+                // Borrar datos del localStorage
+                localStorage.removeItem('stemEvaluationResults');
+                allResults = [];
+
+                // Actualizar interfaz
+                updateAdminStats();
+                
+                alert('✅ Todos los datos locales han sido borrados exitosamente.\n\n📊 Los datos en Google Sheets permanecen intactos.');
+                
+                // Recargar la página para refrescar todo
+                location.reload();
             }
         }
 
