@@ -1095,7 +1095,7 @@
                     <div class="question">${index + 1}. ${q.question}</div>
                     <div class="options">
                         ${q.options.map((option, optIndex) => `
-                            <label class="option" data-question="${q.id}">
+                            <label class="option">
                                 <input type="radio" name="knowledge_${q.id}" value="${optIndex}" onchange="selectKnowledge(${q.id}, ${optIndex})">
                                 <span>${option}</span>
                             </label>
@@ -1108,10 +1108,18 @@
         function selectKnowledge(questionId, answer) {
             knowledgeAnswers[questionId] = answer;
             
-            const option = document.querySelector(`[data-question="${questionId}"]`);
-            const container = option.closest('.question-container');
-            container.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
+            // Buscar el contenedor de la pregunta específica
+            const allOptions = document.querySelectorAll(`input[name="knowledge_${questionId}"]`);
+            allOptions.forEach(radio => {
+                const label = radio.closest('.option');
+                label.classList.remove('selected');
+            });
+            
+            // Marcar solo la opción seleccionada
+            const selectedRadio = document.querySelector(`input[name="knowledge_${questionId}"][value="${answer}"]`);
+            if (selectedRadio) {
+                selectedRadio.closest('.option').classList.add('selected');
+            }
             
             checkKnowledgeComplete();
         }
@@ -1134,7 +1142,7 @@
                     <div class="question">${index + 1}. ${q.question}</div>
                     <div class="options">
                         ${q.options.map((option, optIndex) => `
-                            <label class="option" data-question="${q.id}">
+                            <label class="option">
                                 <input type="radio" name="competency_${q.id}" value="${option.value}" onchange="selectCompetency(${q.id}, ${option.value})">
                                 <span>${option.text}</span>
                             </label>
@@ -1147,10 +1155,18 @@
         function selectCompetency(questionId, value) {
             competencyAnswers[questionId] = value;
             
-            const option = document.querySelector(`label[data-question="${questionId}"]`);
-            const container = option.closest('.question-container');
-            container.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
+            // Buscar el contenedor de la pregunta específica
+            const allOptions = document.querySelectorAll(`input[name="competency_${questionId}"]`);
+            allOptions.forEach(radio => {
+                const label = radio.closest('.option');
+                label.classList.remove('selected');
+            });
+            
+            // Marcar solo la opción seleccionada
+            const selectedRadio = document.querySelector(`input[name="competency_${questionId}"][value="${value}"]`);
+            if (selectedRadio) {
+                selectedRadio.closest('.option').classList.add('selected');
+            }
             
             checkCompetencyComplete();
         }
@@ -1183,8 +1199,32 @@
             allResults.push(result);
             localStorage.setItem('stemEvaluationResults', JSON.stringify(allResults));
 
+            // ENVIAR AUTOMÁTICAMENTE A GOOGLE SHEETS
+            sendResultToGoogleSheets(result);
+
             displayResults(result);
             goToSection('results');
+        }
+
+        async function sendResultToGoogleSheets(result) {
+            if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL === "TU_URL_DE_GOOGLE_SHEETS_AQUI") {
+                console.log('Google Sheets no configurado');
+                return;
+            }
+
+            try {
+                await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(result)
+                });
+                console.log('✅ Datos enviados a Google Sheets');
+            } catch (error) {
+                console.error('Error al enviar a Google Sheets:', error);
+            }
         }
 
         function calculateKnowledgeScore() {
